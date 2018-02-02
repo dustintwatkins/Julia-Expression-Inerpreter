@@ -1,0 +1,24 @@
+        Correct output:
+RudInt.Binop(+, RudInt.Num(1), RudInt.Num(2))
+RudInt.Binop(-, RudInt.Num(1), RudInt.Num(2))
+Error
+Error
+-1
+2
+Error
+Error
+
+        Your output:
+RudInt.Binop(+, RudInt.Num(1), RudInt.Num(2))
+RudInt.Binop(-, RudInt.Num(1), RudInt.Num(2))
+Error
+Error
+-1
+2
+Error
+Error
+
+        Failed tests:
+
+        Grade:
+8 out of 8

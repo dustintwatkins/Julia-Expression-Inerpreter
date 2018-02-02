@@ -3,9 +3,9 @@
 # Base interpreter with numbers, plus, and minus
 #
 
-module RubInt
+module RudInt
 
-push!(LOAD_PATH, ".")
+push!(LOAD_PATH, pwd())
 
 using Error
 using Lexer
@@ -28,34 +28,16 @@ type Binop <: AE
     rhs::AE
 end
 
-type UnaryOp :< AE
+type UnaryOp <: AE
     op::Function
-    next::AE
-end
-
-# Define Dictionary ====================================
-
-function Dict(symbol)
-    if symbol == :+
-        return +
-    elseif symbol == :-
-        return -
-    elseif symbol == :*
-        return *
-    elseif symbol == :/
-        return /
-    elseif symbol == :mod
-        return mod
-    elseif symbol == :collatz
-        return collatz
-    end
+    operand::AE
 end
 
 #
-# ==================================================
+# Define Parse==================================================
 #
 
-function parse( expr::Number )
+function parse( expr::Real )
     return Num( expr )
 end
 
@@ -67,24 +49,26 @@ function parse( expr::Array{Any} )
         catch
             throw( LispError("Incorrect Input"))
         end
-    elseif size(expr)[1] == 2                        #UnaryOperator Expression
-        if expr[1] == :-                            #Parse it
-            next = parse(expr[2])
-        elseif expr[1] == :collatz                  #Collatz
-            next = parse(expr[2])
+    elseif size(expr)[1] == 2                       #Unary Operation
+        if haskey(UnaryDictionary, expr[1])
+            op = UnaryDictionary[expr[1]]
+            operand = parse(expr[2])
         else
-            throw( LispError("Incorrect Input for Unary Operator"))
+            throw( LispError("Incorrect input for Unary Operations"))
         end
-        return UnaryOp( Dict(expr[1]), next)
-    elseif size(expr)[1] == 3
-        if expr[1] == :+
+        return UnaryOp( UnaryDictionary[expr[1]], operand)
+    elseif size(expr)[1] == 3                       #Binary Operation
+        if haskey(BinDictionary, expr[1])
+            op = BinDictionary[expr[1]]
             lhs = parse(expr[2])
             rhs = parse(expr[3])
-        
-
+        else
+            throw( LispError("Incorrect input for Binary Operation"))
+        end
+        return Binop( BinDictionary[expr[1]], lhs, rhs)
+    else                                           #invalid number or arguements...
+        throw(LispError("Invalid number of arguments in expression"))
     end
-
-    throw(LispError("Unknown operator!"))
 end
 
 function parse( expr::Any )
@@ -92,19 +76,51 @@ function parse( expr::Any )
 end
 
 #
-# ==================================================
+# Define CALC ==================================================
 #
 
 function calc( ast::Num )
     return ast.n
 end
 
+#For binary operations
 function calc( ast::Binop )
-    return calc( ast.lhs ) + calc( ast.rhs )
+    l = calc(ast.lhs)
+    r = calc(ast.rhs)
+    if ( ast.op == / ) && ( r == 0)
+        throw( LispError("Division by 0 not permitted"))
+    else
+        return ast.op( l, r )
+    end
 end
 
-function calc( ast::MinusNode )
-    return calc( ast.lhs ) - calc( ast.rhs )
+#for Unary operations
+function calc( ast::UnaryOp )
+    number = calc(ast.operand)
+    if(ast.op == collatz && number <= 0)
+        throw( LispError("Cannot do collatz on $number") )
+    else
+        return ast.op( calc( ast.operand ))
+    end
+end
+
+#
+# Define Collatz ==================================================
+#
+
+function collatz( n::Real )
+  return collatz_helper( n, 0 )
+end
+
+function collatz_helper( n::Real, num_iters::Int )
+  if n == 1
+    return num_iters
+  end
+  if mod(n,2)==0
+    return collatz_helper( n/2, num_iters+1 )
+  else
+    return collatz_helper( 3*n+1, num_iters+1 )
+  end
 end
 
 #
@@ -117,4 +133,7 @@ function interp( cs::AbstractString )
     return calc( ast )
 end
 
+# Define Dictionary ====================================
+UnaryDictionary = Dict(:- => -, :collatz => collatz)
+BinDictionary = Dict(:+ => +, :- => -, :* => *, :/ => /, :mod => mod, :collatz => collatz)
 end #module
