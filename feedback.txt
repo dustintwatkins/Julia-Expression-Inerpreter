@@ -1,24 +1,28 @@
         Correct output:
-RudInt.Binop(+, RudInt.Num(1), RudInt.Num(2))
-RudInt.Binop(-, RudInt.Num(1), RudInt.Num(2))
-Error
-Error
--1
-2
-Error
-Error
+1. Pass
+2. Error
+3. Error
+4. ExtInt.NumVal(3)
+5. ExtInt.NumVal(1)
+6. Pass
+7. Pass
+8. Error
+9. Error
+10. ExtInt.NumVal(4)
 
         Your output:
-RudInt.Binop(+, RudInt.Num(1), RudInt.Num(2))
-RudInt.Binop(-, RudInt.Num(1), RudInt.Num(2))
-Error
-Error
--1
-2
-Error
-Error
+1. Pass
+2. Error
+3. Error
+4. ExtInt.NumVal(3)
+5. ExtInt.NumVal(1)
+6. Pass
+7. Pass
+8. Error
+9. Error
+10. ExtInt.NumVal(4)
 
         Failed tests:
 
         Grade:
-8 out of 8
+10 out of 10
